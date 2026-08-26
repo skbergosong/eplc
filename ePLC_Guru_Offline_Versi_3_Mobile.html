@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>e-PLC Guru Offline • V3 Mobile</title>
+<style>
+:root{--blue:#2563eb;--dark:#173b75;--line:#d9e1ec;--bg:#f4f7fb;--green:#0f9d7a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:#263449}
+.top{background:linear-gradient(120deg,#123f91,#2474e8);color:#fff;padding:24px 28px}
+.top h1{margin:0;font-size:25px}.top p{margin:6px 0 0;opacity:.9}
+.wrap{max-width:1180px;margin:20px auto;padding:0 16px 50px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:12px;margin:14px 0;box-shadow:0 2px 8px #0f172a0d;overflow:hidden}
+.ph{padding:14px 18px;background:#f8fafc;border-bottom:1px solid var(--line);font-weight:800;color:var(--dark)}
+.pb{padding:18px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.full{grid-column:1/-1}
+label{font-weight:700;font-size:13px;display:block;margin-bottom:6px}
+.req{color:#e11d48}input,select,textarea{width:100%;padding:10px 11px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font:inherit}
+textarea{min-height:125px;resize:vertical}.help{font-size:12px;color:#64748b;margin-top:5px}
+.radios{display:flex;flex-wrap:wrap;gap:8px}.radio{border:1px solid #cbd5e1;border-radius:8px;padding:9px 12px;display:flex;gap:7px;align-items:center;font-weight:700}.radio input{width:auto}
+table{width:100%;border-collapse:collapse}th,td{border:1px solid var(--line);padding:8px;font-size:13px;text-align:left}th{background:#f8fafc;color:#475569}
+.btn{border:0;border-radius:8px;padding:9px 13px;color:#fff;background:var(--blue);font-weight:700;cursor:pointer}.btn.green{background:var(--green)}.btn.gray{background:#64748b}.btn.red{background:#dc2626}.btn.sm{padding:7px 10px;font-size:12px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.pill{display:inline-block;background:#eaf2ff;color:#1d4ed8;padding:5px 8px;border-radius:20px;font-size:12px;font-weight:700}
+.member-form{display:grid;grid-template-columns:1.2fr 1.5fr 1.1fr .7fr 1fr auto;gap:8px;align-items:end;margin-bottom:12px}
+.limit{font-size:12px;color:#64748b}.empty{text-align:center;color:#64748b;padding:18px}
+@media(max-width:900px){.member-form{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.full{grid-column:auto}}
+@media print{body{background:white}.toolbar,.no-print{display:none!important}.panel{box-shadow:none;break-inside:avoid}.top{color:#000;background:white;border-bottom:2px solid #000}}
+</style>
+
+<style>
+body{padding-bottom:78px}
+.top{position:sticky;top:0;z-index:20;padding:17px 16px}
+.top h1{font-size:20px}.top p{font-size:12px}
+.wrap{max-width:760px;margin:10px auto;padding:0 10px 30px}
+.panel{margin:10px 0;border-radius:14px}
+.ph{padding:13px 14px;font-size:15px}
+.pb{padding:13px}
+.grid{display:block}.grid>div{margin-bottom:13px}
+input,select,textarea{font-size:16px;padding:12px;border-radius:10px}
+select[multiple]{min-height:220px}
+.radios{display:grid;grid-template-columns:1fr}
+.radio{min-height:44px}
+.member-form{display:block}
+.member-form>div,.member-form>button{margin-bottom:9px}
+.member-form .btn{width:100%;min-height:44px}
+table{display:block;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
+th,td{padding:9px}
+.toolbar{position:sticky;bottom:8px;z-index:30;background:#ffffffee;border:1px solid #d9e1ec;border-radius:14px;padding:8px;box-shadow:0 5px 20px #0f172a22}
+.toolbar .btn{flex:1;min-width:100px;min-height:42px}
+.btn{min-height:42px}
+.btn.sm{min-height:38px}
+.appnav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid #d9e1ec;display:grid;grid-template-columns:repeat(4,1fr);padding:6px 5px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -4px 18px #0f172a14}
+.appnav button{border:0;background:transparent;color:#475569;font-weight:700;font-size:11px;padding:8px 3px}
+.appnav button span{display:block;font-size:19px;margin-bottom:2px}
+@media(min-width:761px){.appnav{display:none}}
+@media(max-width:760px){
+ .no-mobile{display:none!important}
+ .limit{display:block;margin-top:3px}
+}
+</style>
+</head>
+<body>
+<div class="top"><h1>e-PLC Guru • V3 Mobile</h1><p>Reka bentuk khas telefon — sesuai untuk Samsung S26 Ultra dan penggunaan offline.</p></div>
+<div class="wrap">
+<div class="toolbar no-print">
+<button class="btn" onclick="saveLocal()">💾 Simpan</button>
+<button class="btn gray" onclick="loadLocal()">↻ Muat Semula</button>
+<button class="btn green" onclick="exportData()">⬇ Eksport</button>
+<button class="btn gray" onclick="document.getElementById('import').click()">⬆ Import</button>
+<button class="btn" onclick="window.print()">🖨 Cetak / PDF</button>
+<button class="btn red" onclick="resetAll()">Kosongkan</button>
+<input id="import" type="file" accept=".json" hidden onchange="importData(event)">
+</div>
+
+<div class="panel"><div class="ph">Ahli PLC Sekolah <span class="pill" id="schoolBadge">0 ahli</span></div><div class="pb">
+<div class="member-form">
+<div><label>No. KP Ahli <span class="req">*</span></label><input id="skp" placeholder="Contoh: 800315035151"></div>
+<div><label>Nama Ahli <span class="req">*</span></label><input id="sname"></div>
+<div><label>Jawatan</label><input id="sjob" placeholder="Contoh: Guru"></div>
+<div><label>Gred</label><input id="sgrade" placeholder="DG"></div>
+<div><label>Jenis Staf</label><select id="stype"><option>Guru</option><option>AKP</option><option>PPP</option><option>Lain-lain</option></select></div>
+<button class="btn" onclick="addMember('school')">Tambah</button>
+</div>
+<table><thead><tr><th>ID</th><th>No. KP</th><th>Nama Ahli</th><th>Jawatan</th><th>Gred</th><th>Jenis Staf</th><th>Status</th><th>Tindakan</th></tr></thead><tbody id="schoolRows"></tbody></table>
+</div></div>
+
+<div class="panel"><div class="ph">Ahli PLC Bah/JPN/PPD <span class="pill" id="agencyBadge">0 ahli</span></div><div class="pb">
+<div class="member-form">
+<div><label>No. KP Ahli <span class="req">*</span></label><input id="akp" placeholder="Contoh: 800315035151"></div>
+<div><label>Nama Ahli <span class="req">*</span></label><input id="aname"></div>
+<div><label>Jawatan</label><input id="ajob"></div>
+<div><label>Gred</label><input id="agrade"></div>
+<div><label>Jenis Staf</label><select id="atype"><option>Guru</option><option>AKP</option><option>PPP</option><option>Lain-lain</option></select></div>
+<button class="btn" onclick="addMember('agency')">Tambah</button>
+</div>
+<table><thead><tr><th>ID</th><th>No. KP</th><th>Nama Ahli</th><th>Jawatan</th><th>Gred</th><th>Jenis Staf</th><th>Status</th><th>Tindakan</th></tr></thead><tbody id="agencyRows"></tbody></table>
+</div></div>
+
+<div class="panel"><div class="ph">Maklumat PLC</div><div class="pb"><div class="grid">
+<div class="full"><label>Bidang PLC <span class="req">*</span></label><div class="radios">
+<label class="radio"><input type="radio" name="field" value="PdP" onchange="tools()"> PdP</label>
+<label class="radio"><input type="radio" name="field" value="Pengurusan" onchange="tools()"> Pengurusan</label>
+<label class="radio"><input type="radio" name="field" value="PdP dan Pengurusan" onchange="tools()"> PdP dan Pengurusan</label>
+</div><div class="help">Pilihan bidang akan mengunci/menentukan alat kolaboratif yang berkaitan.</div></div>
+<div><label>Alat Kolaboratif <span class="req">*</span></label><select id="tool"></select></div>
+<div><label>Tempat</label><input id="place"></div>
+<div><label>Tarikh Tamat <span class="req">*</span></label><input id="finish" type="date"></div>
+</div></div></div>
+
+<div class="panel"><div class="ph">Pengurusan <span class="req">*</span> <span class="limit">(min 1, maks 3)</span></div><div class="pb">
+<select id="management" multiple size="10">
+<option>A001 - ICT/Digital</option><option>A002 - Bimbingan Kaunseling</option><option>A003 - Kokurikulum/Sukan/Permainan</option><option>A004 - HEM</option><option>A005 - STEM</option><option>A006 - IR4.0</option><option>A007 - Inovasi</option><option>A008 - Program Madani</option><option>A009 - Pengurusan Organisasi</option><option>A010 - Kesihatan (Pemakanan/Nutrisi)</option><option>A011 - PdP/PdPc/PdPr</option><option>A012 - Alam Sekitar</option><option>A013 - Benchmarking</option><option>A014 - Pemeriksaan</option>
+</select><div class="help">Tekan Ctrl (Windows) / Cmd (Mac) untuk memilih lebih daripada satu.</div></div></div>
+
+<div class="panel"><div class="ph">Mata Pelajaran <span class="req">*</span> <span class="limit">(min 1, maks 3)</span></div><div class="pb">
+<select id="subjects" multiple size="14">
+<option>T101 - ENGLISH LANGUAGE</option><option>T102 - AMALAN BAHASA MELAYU</option><option>T103 - KAJIAN TEMPATAN</option><option>T104 - MATEMATIK/MATHEMATICS</option><option>T106 - PENDIDIKAN MORAL</option><option>T107 - PENDIDIKAN SIVIK DAN KEWARGANEGARAAN</option><option>T108 - SAINS/SCIENCE</option><option>T109 - PENDIDIKAN ISLAM</option><option>T602 - BAHASA MELAYU</option><option>T603 - BAHASA TAMIL</option><option>T604 - SEJARAH</option><option>W101 - PENDIDIKAN MUZIK</option><option>W102 - PENDIDIKAN SENI VISUAL</option><option>W103 - PENDIDIKAN JASMANI DAN PENDIDIKAN KESIHATAN</option><option>W113 - PENDIDIKAN KESENIAN - SENI VISUAL</option><option>W114 - PENDIDIKAN KESIHATAN</option><option>W115 - REKA BENTUK DAN TEKNOLOGI (KSSR TAHAP I)</option><option>W116 - TEKNOLOGI MAKLUMAT DAN KOMUNIKASI (KSSR TAHAP II)</option><option>W117 - DUNIA MUZIK (KSSR TAHAP I)</option><option>W118 - DUNIA SENI VISUAL (KSSR TAHAP I)</option><option>W119 - DUNIA SAINS DAN TEKNOLOGI (KSSR TAHAP I)</option><option>W120 - TASMIK</option><option>W601 - GEOGRAFI</option><option>W602 - PENGAJIAN AM (T6)</option><option>W603 - MUET - MALAYSIAN UNIVERSITY ENGLISH TEST (T6)</option><option>X001 - TIDAK MENGAJAR</option><option>X002 - BIMBINGAN DAN KAUNSELING</option><option>X003 - PERPUSTAKAAN DAN MEDIA</option><option>XXX - BUKAN PDP</option><option>V501 - SENI KULINARI (KV)</option><option>V502 - BAKERI DAN KONFEKSIONARI (KV)</option><option>V503 - FESYEN DAN PEMBUATAN PAKAIAN (KV)</option><option>V504 - KOSMETOLOGI (KV)</option><option>V505 - PERKHIDMATAN ASUHAN KANAK-KANAK (KV)</option><option>V506 - PELANCONGAN (KV)</option><option>V601 - PENGURUSAN PERNIAGAAN (KV)</option><option>V602 - KESETIAUSAHAAN PENTADBIRAN (KV)</option><option>V603 - PERBANKAN (KV)</option><option>V604 - INSURANS (KV)</option><option>V605 - PEMASARAN (KV)</option><option>V606 - PENGURUSAN PERUNCITAN (KV)</option><option>V607 - PERAKAUNAN (KV)</option><option>V701 - AGROINDUSTRI TANAMAN (KV)</option><option>V702 - AGROINDUSTRI TERNAKAN RUMINAN (KV)</option><option>V703 - AGROINDUSTRI TERNAKAN POULTRI (KV)</option><option>V704 - MEKANISASI AGRO (KV)</option><option>V705 - HERBA (KV)</option><option>V706 - BIOTEKNOLOGI (KV)</option><option>V707 - AKUAKULTUR (KV)</option><option>V708 - HOLTIKULTUR HIASAN (KV)</option><option>V709 - LANDSKAP (KV)</option><option>V710 - PEMPROSESAN HASIL PERTANIAN (KV)</option><option>V711 - FLORIKULTUR (KV)</option><option>V801 - MEMBUAT PAKAIAN (PAV)</option><option>V802 - PENYEDIAAN MAKANAN (PAV)</option><option>V803 - PEMBUATAN PERABOT (PAV)</option><option>V804 - AUTOMOTIF (PAV)</option><option>V805 - PENDAWAIAN ELEKTRIK (PAV)</option><option>V806 - MOTOSIKAL (PAV)</option><option>V807 - PENYEJUKBEKUAN DAN PENYAMANAN UDARA (PAV)</option><option>V808 - AKUAKULTUR (PAV)</option><option>V809 - TANAMAN (PAV)</option><option>V810 - DEKORASI DALAMAN (PAV)</option><option>V811 - VISUAL DAN ANIMASI (PAV)</option>
+</select><div class="help">Senarai disusun berdasarkan kod/nama yang kelihatan dalam tangkapan skrin yang Nath beri.</div></div></div>
+
+<div class="panel"><div class="ph">Fokus • Improve • Share</div><div class="pb"><div class="grid">
+<div class="full"><label>Fokus <span class="req">*</span></label><textarea id="focus" placeholder="Kenal pasti isu atau masalah pengajaran dan pembelajaran, tetapkan objektif yang jelas, bentuk kumpulan kolaboratif, dan gunakan data untuk memahami punca isu yang hendak diselesaikan."></textarea></div>
+<div class="full"><label>Improve <span class="req">*</span></label><textarea id="improve" placeholder="Pilih strategi atau alat kolaboratif yang sesuai, rancang tindakan, laksanakan penambahbaikan, dan nilai keberkesanan intervensi yang dijalankan di sekolah."></textarea></div>
+<div class="full"><label>Share <span class="req">*</span></label><textarea id="share" placeholder="Dokumentasikan dapatan, kongsi amalan terbaik, dan sebarkan pembelajaran profesional supaya impak penambahbaikan dapat diperluas kepada komuniti sekolah."></textarea></div>
+</div></div></div>
+</div>
+
+<script>
+const TOOLS={
+"PdP":["HORIZONTAL AND VERTICAL TEAMS","INTERDISCIPLINARY UNITS AND PROJECTS","LEARNING WALK","LESSON STUDY","VIDEO CRITIQUE OF TEACHING MOMENT"],
+"Pengurusan":["DATA ANALYSIS","PERFORMANCE DIALOGUE"],
+"PdP dan Pengurusan":["BOOK CLUB","CRITICAL FRIENDS GROUP","PEER COACHING","PROBLEM SOLVING GROUPS","STUDY GROUPS","TEACHER SHARING SESSIONS"]
+};
+let school=[],agency=[];
+function tools(sel=""){let f=document.querySelector('input[name=field]:checked')?.value||"",s=document.getElementById("tool");s.innerHTML='<option value="">Pilih alat kolaboratif</option>';(TOOLS[f]||[]).forEach(x=>{let o=new Option(x,x);s.add(o)});s.value=sel}
+function addMember(type){
+ let p=type==="school"?{kp:"skp",name:"sname",job:"sjob",grade:"sgrade",staff:"stype"}:{kp:"akp",name:"aname",job:"ajob",grade:"agrade",staff:"atype"};
+ let d={kp:$(p.kp).value,name:$(p.name).value,job:$(p.job).value,grade:$(p.grade).value,staff:$(p.staff).value,status:"AHLI"};
+ if(!d.kp||!d.name){alert("Sila isi sekurang-kurangnya No. KP dan Nama Ahli.");return}
+ let arr=type==="school"?school:agency;
+ if(arr.some(x=>x.kp===d.kp)){alert("No. KP yang sama telah direkodkan.");return}
+ arr.push(d); render(type); [p.kp,p.name,p.job,p.grade].forEach(x=>$(x).value="");
+}
+function render(type){let arr=type==="school"?school:agency,id=type==="school"?"schoolRows":"agencyRows",b=type==="school"?"schoolBadge":"agencyBadge",tb=document.getElementById(id);tb.innerHTML="";
+ arr.forEach((x,i)=>{let tr=document.createElement("tr");tr.innerHTML=`<td>${i+1}</td><td>${esc(x.kp)}</td><td>${esc(x.name)}</td><td>${esc(x.job)}</td><td>${esc(x.grade)}</td><td>${esc(x.staff)}</td><td>${x.status}</td><td><button class="btn red sm" onclick="removeMember('${type}',${i})">Buang</button></td>`;tb.appendChild(tr)});
+ if(!arr.length)tb.innerHTML='<tr><td colspan="8" class="empty">Belum ada ahli PLC direkodkan.</td></tr>';
+ document.getElementById(b).textContent=arr.length+" ahli";
+}
+function removeMember(type,i){(type==="school"?school:agency).splice(i,1);render(type)}
+function $(id){return document.getElementById(id)}
+function esc(x){return String(x).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function getData(){return{school,agency,field:document.querySelector('input[name=field]:checked')?.value||"",tool:$("tool").value,place:$("place").value,finish:$("finish").value,management:[...$("management").selectedOptions].map(x=>x.value),subjects:[...$("subjects").selectedOptions].map(x=>x.value),focus:$("focus").value,improve:$("improve").value,share:$("share").value}}
+function apply(d){school=d.school||[];agency=d.agency||[];render("school");render("agency");document.querySelectorAll('input[name=field]').forEach(r=>r.checked=r.value===d.field);tools(d.tool);$("place").value=d.place||"";$("finish").value=d.finish||"";$("focus").value=d.focus||"";$("improve").value=d.improve||"";$("share").value=d.share||"";["management","subjects"].forEach(k=>[...$(k).options].forEach(o=>o.selected=(d[k]||[]).includes(o.value)))}
+function saveLocal(){localStorage.setItem("PLC_V2",JSON.stringify(getData()));alert("Data PLC telah disimpan secara offline.")}
+function loadLocal(){let x=localStorage.getItem("PLC_V2");if(!x){alert("Tiada data disimpan.");return}apply(JSON.parse(x));alert("Data dimuat semula.")}
+function exportData(){let b=new Blob([JSON.stringify(getData(),null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="PLC_Guru_V2.json";a.click();URL.revokeObjectURL(a.href)}
+function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{apply(JSON.parse(r.result));alert("Data berjaya diimport.")}catch{alert("Fail tidak sah.")}};r.readAsText(f)}
+function resetAll(){if(confirm("Kosongkan semua data?")){localStorage.removeItem("PLC_V2");location.reload()}}
+render("school");render("agency");tools();
+</script>
+
+<div class="appnav">
+<button onclick="scrollToSection('schoolRows')"><span>👥</span>Ahli</button>
+<button onclick="scrollToSection('tool')"><span>📋</span>Maklumat</button>
+<button onclick="scrollToSection('subjects')"><span>📚</span>Subjek</button>
+<button onclick="scrollToSection('focus')"><span>📝</span>Fokus</button>
+</div>
+<script>
+function scrollToSection(id){
+ const e=document.getElementById(id); if(e)e.scrollIntoView({behavior:'smooth',block:'start'});
+}
+</script>
+</body></html>
