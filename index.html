@@ -149,19 +149,29 @@ function removeMember(type,i){(type==="school"?school:agency).splice(i,1);render
 function $(id){return document.getElementById(id)}
 function esc(x){return String(x).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function getData(){return{school,agency,field:document.querySelector('input[name=field]:checked')?.value||"",tool:$("tool").value,place:$("place").value,finish:$("finish").value,management:[...$("management").selectedOptions].map(x=>x.value),subjects:[...$("subjects").selectedOptions].map(x=>x.value),focus:$("focus").value,improve:$("improve").value,share:$("share").value}}
-function showDashboard(){
+async function showDashboard(){
+  const response = await fetch(GOOGLE_SHEETS_URL);
+const rows = await response.json();
 
-  const data = getData();
-  const totalGuru = data.school.length;
-  const totalAgensi = data.agency.length;
-  const totalAhli = totalGuru + totalAgensi;
+const records = Array.isArray(rows) ? rows : [];
 
-  const subjects = data.subjects || [];
-  const focus = data.focus || "";
-  const improve = data.improve || "";
-  const share = data.share || "";
+const totalGuru = records.filter(r => r[5] === "Guru").length;
+const totalAhli = records.length;
+const totalAgensi = totalAhli - totalGuru;
 
-  const old = document.getElementById("dashboardModal");
+const subjectList = records
+  .flatMap(r => String(r[10] || "").split(","))
+  .map(x => x.trim())
+  .filter(Boolean);
+
+const subjects = [...new Set(subjectList)];
+
+const latest = records.length ? records[records.length - 1] : [];
+
+const focus = latest[7] || "";
+const improve = latest[8] || "";
+const share = latest[9] || "";
+    const old = document.getElementById("dashboardModal");
   if(old) old.remove();
 
   const modal = document.createElement("div");
