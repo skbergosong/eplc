@@ -149,7 +149,7 @@ function removeMember(type,i){(type==="school"?school:agency).splice(i,1);render
 function $(id){return document.getElementById(id)}
 function esc(x){return String(x).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function getData(){return{school,agency,field:document.querySelector('input[name=field]:checked')?.value||"",tool:$("tool").value,place:$("place").value,finish:$("finish").value,management:[...$("management").selectedOptions].map(x=>x.value),subjects:[...$("subjects").selectedOptions].map(x=>x.value),focus:$("focus").value,improve:$("improve").value,share:$("share").value}}
-const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycby9UZIsm25gS57q4EXLwTHn48j9afqQK86mF9X7Dj9G3bzwrFHlqrLlrllbFDX9JPmT/exec";
+const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxzPzoEY10qiAb6-rtysT6V7Kf2EYhspsMSxE5FJDwtwWFF4w2LV6sgK3qH9WVp-cRKgQ/exec";
 function sendToGoogleSheets(){  const data = getData();  fetch(GOOGLE_SHEETS_URL, {    method: "POST",    body: JSON.stringify(data)  })  .then(() => {    alert("✅ Data berjaya dihantar ke Google Sheets.");  })
   .catch(error => {    alert("❌ Gagal menghantar data: " + error);  });}
 function apply(d){school=d.school||[];agency=d.agency||[];render("school");render("agency");document.querySelectorAll('input[name=field]').forEach(r=>r.checked=r.value===d.field);tools(d.tool);$("place").value=d.place||"";$("finish").value=d.finish||"";$("focus").value=d.focus||"";$("improve").value=d.improve||"";$("share").value=d.share||"";["management","subjects"].forEach(k=>[...$(k).options].forEach(o=>o.selected=(d[k]||[]).includes(o.value)))}
