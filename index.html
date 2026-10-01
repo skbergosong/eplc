@@ -71,8 +71,18 @@ th,td{padding:9px}
 <button class="btn red" onclick="resetAll()">Kosongkan</button>
 <input id="import" type="file" accept=".json" hidden onchange="importData(event)">
 </div>
-
-<div class="panel"><div class="ph">Ahli PLC Sekolah <span class="pill" id="schoolBadge">0 ahli</span></div><div class="pb">
+<div class="panel">
+  <div class="ph">👤 Pengisi PLC</div>
+  <div class="pb">
+    <label>Nama Guru <span class="req">*</span></label>
+    <input
+      type="text"
+      id="pengisiPLC"
+      placeholder="Taip nama guru yang mengisi PLC"
+    >
+  </div>
+</div>
+ <div class="panel"><div class="ph">Ahli PLC Sekolah <span class="pill" id="schoolBadge">0 ahli</span></div><div class="pb">
 <div class="member-form">
 <div><label>No. KP Ahli <span class="req">*</span></label><input id="skp" placeholder="Contoh: 800315035151"></div>
 <div><label>Nama Ahli <span class="req">*</span></label><input id="sname"></div>
