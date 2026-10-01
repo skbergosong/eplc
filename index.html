@@ -1147,7 +1147,8 @@ async function showDashboard(){
     alert("Dashboard gagal mengambil data. Sila semak sambungan Google Sheets.");
 
     console.error("Dashboard Error:",error);
-  }
+ }
+}
  const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxzPzoEY10qiAb6-rtysT6V7Kf2EYhspsMSxE5FJDwtwWFF4w2LV6sgK3qH9WVp-cRKgQ/exec";
 function sendToGoogleSheets(){  const data = getData();  fetch(GOOGLE_SHEETS_URL, {    method: "POST",    body: JSON.stringify(data)  })  .then(() => {    alert("✅ Data berjaya dihantar ke Google Sheets.");  })
   .catch(error => {    alert("❌ Gagal menghantar data: " + error);  });}
