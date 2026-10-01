@@ -539,7 +539,22 @@ function render(type){let arr=type==="school"?school:agency,id=type==="school"?"
 function removeMember(type,i){(type==="school"?school:agency).splice(i,1);render(type)}
 function $(id){return document.getElementById(id)}
 function esc(x){return String(x).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
-function getData(){return{pengisiPLC:document.getElementById("pengisiPLC").value,school,agency,field:document.querySelector('input[name=field]:checked')?.value||"",tool:$("tool").value,place:$("place").value,finish:$("finish").value,management:[...$("management").selectedOptions].map(x=>x.value),subjects:[...$("subjects").selectedOptions].map(x=>x.value),focus:$("focus").value,improve:$("improve").value,share:$("share").value}}
+function getData(){return{function getData(){return{
+  pengisiPLC:document.getElementById("pengisiPLC").value,
+  pengisiKP:document.getElementById("pengisiKP").value,
+  pengisiStatus:document.getElementById("pengisiStatus").value,
+  school,
+  agency,
+  field:document.querySelector('input[name=field]:checked')?.value||"",
+  tool:$("tool").value,
+  place:$("place").value,
+  finish:$("finish").value,
+  management:[...$("management").selectedOptions].map(x=>x.value),
+  subjects:[...$("subjects").selectedOptions].map(x=>x.value),
+  focus:$("focus").value,
+  improve:$("improve").value,
+  share:$("share").value
+}}
 async function showDashboard(){
   const old = document.getElementById("dashboardModal");
   if(old) old.remove();
