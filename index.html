@@ -528,198 +528,626 @@ function $(id){return document.getElementById(id)}
 function esc(x){return String(x).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function getData(){return{pengisiPLC:document.getElementById("pengisiPLC").value,school,agency,field:document.querySelector('input[name=field]:checked')?.value||"",tool:$("tool").value,place:$("place").value,finish:$("finish").value,management:[...$("management").selectedOptions].map(x=>x.value),subjects:[...$("subjects").selectedOptions].map(x=>x.value),focus:$("focus").value,improve:$("improve").value,share:$("share").value}}
 async function showDashboard(){
-  const response = await fetch(GOOGLE_SHEETS_URL);
-const rows = await response.json();
+  const old = document.getElementById("dashboardModal");
+  if(old) old.remove();
 
-const records = Array.isArray(rows) ? rows : [];
+  try{
+    const response = await fetch(GOOGLE_SHEETS_URL);
+    const raw = await response.json();
+    const records = Array.isArray(raw) ? raw : [];
 
-const totalGuru = records.filter(r => r[5] === "Guru").length;
-const totalAhli = records.length;
-const totalAgensi = totalAhli - totalGuru;
+    // Ambil data daripada Google Sheets
+    function getValue(row, names, indexes=[]){
+      if(!row) return "";
 
-const subjectList = records
-  .flatMap(r => String(r[10] || "").split(","))
-  .map(x => x.trim())
-  .filter(Boolean);
+      if(!Array.isArray(row)){
+        for(const name of names){
+          if(row[name] !== undefined &&
+             row[name] !== null &&
+             String(row[name]).trim() !== ""){
+            return String(row[name]);
+          }
+        }
+      }else{
+        for(const index of indexes){
+          if(row[index] !== undefined &&
+             row[index] !== null &&
+             String(row[index]).trim() !== ""){
+            return String(row[index]);
+          }
+        }
+      }
 
-const subjects = [...new Set(subjectList)];
+      return "";
+    }
 
-const latest = records.length ? records[records.length - 1] : [];
+    function splitValues(value){
+      return String(value || "")
+        .split(",")
+        .map(x => x.trim())
+        .filter(Boolean);
+    }
 
-const focus = latest[7] || "";
-const improve = latest[8] || "";
-const share = latest[9] || "";
-    const old = document.getElementById("dashboardModal");  if(old) old.remove();  const modal = document.createElement("div");  modal.id = "dashboardModal";  modal.innerHTML = `
-    <div style="      position:fixed;      inset:0;      background:rgba(15,23,42,.65);      z-index:9999;      overflow:auto;      padding:25px;    ">      <div style="
-        max-width:1100px;        margin:auto;        background:#fff;        border-radius:22px;        padding:28px;        box-shadow:0 20px 60px rgba(0,0,0,.25);      ">
-       <div style="
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:20px;
-    margin-bottom:28px;
-    padding:20px 22px;
-   background:linear-gradient(135deg,#0F2B46,#176B9C,#2A9D8F);;
-    border-radius:18px;
-    color:white;
-    box-shadow:0 8px 20px rgba(23,55,95,.18);
-">
+    function escapeHTML(value){
+      return String(value || "").replace(/[&<>"']/g, function(m){
+        return {
+          "&":"&amp;",
+          "<":"&lt;",
+          ">":"&gt;",
+          '"':"&quot;",
+          "'":"&#39;"
+        }[m];
+      });
+    }
 
-    <div>
+    // Statistik
+    const guruCount = {};
+    const toolCount = {};
+
+    records.forEach(row => {
+
+      const guru = getValue(
+        row,
+        ["Nama_Pengisi","Nama Pengisi","Pengisi PLC","pengisiPLC"],
+        [0,1,2]
+      );
+
+      const tool = getValue(
+        row,
+        ["Alat_Kolaboratif","Alat Kolaboratif","tool"],
+        [6,7,8]
+      );
+
+      if(guru){
+        guruCount[guru] = (guruCount[guru] || 0) + 1;
+      }
+
+      splitValues(tool).forEach(item => {
+        toolCount[item] = (toolCount[item] || 0) + 1;
+      });
+    });
+
+    const guruRank = Object.entries(guruCount)
+      .sort((a,b) => b[1] - a[1]);
+
+    const toolRank = Object.entries(toolCount)
+      .sort((a,b) => b[1] - a[1])
+      .slice(0,3);
+
+    const jumlahPLC = records.length;
+
+    const guruTeratas = guruRank.length
+      ? guruRank[0]
+      : ["Belum ada data",0];
+
+    const maxGuru = Math.max(
+      1,
+      ...guruRank.slice(0,8).map(x => x[1])
+    );
+
+    const maxTool = Math.max(
+      1,
+      ...toolRank.map(x => x[1])
+    );
+
+    // Modal Dashboard
+    const modal = document.createElement("div");
+    modal.id = "dashboardModal";
+
+    modal.innerHTML = `
+      <div style="
+        position:fixed;
+        inset:0;
+        z-index:9999;
+        background:rgba(7,25,50,.82);
+        backdrop-filter:blur(6px);
+        overflow:auto;
+        padding:18px;
+      ">
+
         <div style="
-            font-size:12px;
-            font-weight:700;
-            letter-spacing:1.5px;
-            opacity:.8;
-            margin-bottom:5px;
+          max-width:1180px;
+          margin:auto;
+          background:#f5f8fc;
+          border-radius:24px;
+          overflow:hidden;
+          box-shadow:0 25px 80px rgba(0,0,0,.35);
         ">
-            ePLC SEKOLAH
-        </div>
 
-        <h2 style="
-            margin:0;
-            font-size:27px;
-            font-weight:800;
-            letter-spacing:.2px;
-        ">
-            📊 Dashboard PLC
-        </h2>
-
-        <div style="
-            margin-top:6px;
-            font-size:14px;
-            opacity:.9;
-        ">
-            Ringkasan penglibatan dan rekod PLC
-        </div>
-    </div>
-
-    <button onclick="document.getElementById('dashboardModal').remove()" style="
-        border:0;
-        background:rgba(255,255,255,.16);
-        color:white;
-        width:40px;
-        height:40px;
-        border-radius:50%;
-        font-size:20px;
-        cursor:pointer;
-    ">
-        ×
-    </button>
-
-</div>
-        </div>
-        <div style="          display:grid;          grid-template-columns:repeat(auto-fit,minmax(180px,1fr));          gap:15px;          margin-bottom:25px;
-        ">
-          <div style="            background:linear-gradient(135deg,#ffffff,#eef6ff);           border-radius:16px;            padding:20px;            border:1px solid #dbeafe;          ">
-            <div style="font-size:13px;color:#64748b">
-              👥 Jumlah Ahli
-            </div>
-            <div style="              font-size:32px;              font-weight:800;              color:#2563eb;              margin-top:6px;
-            ">
-              ${totalAhli}
-            </div>
-          </div>
-          <div style="            background:linear-gradient(135deg,#ffffff,#effaf3);           border-radius:16px;            padding:20px;            border:1px solid #dcfce7;          ">
-            <div style="font-size:13px;color:#64748b">
-              👨‍🏫 Guru
-            </div>
-            <div style="              font-size:32px;             font-weight:800;              color:#16a34a;              margin-top:6px;            ">
-              ${totalGuru}          
-              </div>         
-              </div>
-          <div style="          background:linear-gradient(135deg,#ffffff,#fff6e8);            border-radius:16px;            padding:20px;            border:1px solid #fed7aa;
-          ">
-            <div style="font-size:13px;color:#64748b">
-              🏫 Agensi
-            </div>
-            <div style="              font-size:32px;              font-weight:800;              color:#ea580c;              margin-top:6px;
-            ">
-              ${totalAgensi}
-            </div>
-          </div>
-
-          <div style="            background:#faf5ff;            border-radius:16px;            padding:20px;            border:1px solid #e9d5ff;
-          ">
-            <div style="font-size:13px;color:#64748b">
-              📚 Mata Pelajaran
-            </div>
-            <div style="              font-size:32px;              font-weight:800;              color:#9333ea;              margin-top:6px;
-            ">
-              ${subjects.length}
-            </div>
-          </div>
-
-        </div>
-
-        <div style="          display:grid;          grid-template-columns:repeat(auto-fit,minmax(280px,1fr));          gap:18px;
-        ">
-          <div style="    
-          background:#ffffff;
-          border:1px solid #e2e8f0;
-          border-radius:16px;
-          padding:20px;
-          ">
-            <h3 style="margin-top:0;color:#17375F">
-              📚 Mata Pelajaran
-            </h3>
-            <div style="              color:#475569;              line-height:1.8;            ">
-              ${subjects.length
-                ? subjects.map(x=>`• ${esc(x)}`).join("<br>")
-                : "Belum direkodkan."
-              }
-            </div>
-          </div>
+          <!-- HEADER -->
           <div style="
-          background:#ffffff;
-          border:1px solid #e2e8f0;
-          border-radius:16px;
-          padding:20px;
+            background:linear-gradient(120deg,#071f45,#123f73,#b78b2b);
+            color:white;
+            padding:28px 32px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
           ">
-            <h3 style="margin-top:0;color:#17375F">
-              🎯 Fokus PLC
-            </h3>
-            <div style="              color:#475569;              line-height:1.7;            ">
-              ${focus || "Belum direkodkan."}
+
+            <div>
+              <div style="
+                font-size:11px;
+                letter-spacing:2px;
+                opacity:.75;
+                font-weight:700;
+              ">
+                e-PLC SEKOLAH • TAHUN 2026
+              </div>
+
+              <div style="
+                font-size:28px;
+                font-weight:800;
+                margin-top:5px;
+              ">
+                e-PLC SK BERGOSONG TAWAU
+              </div>
+
+              <div style="
+                font-size:14px;
+                opacity:.85;
+                margin-top:5px;
+              ">
+                SkeBT Komited dan Cemerlang
+              </div>
             </div>
-          </div>
-          <div style="   
-          background:#ffffff;
-          border:1px solid #e2e8f0;            border-radius:16px;            padding:20px;
-          ">
-            <h3 style="margin-top:0;color:#17375F">
-              🔧 Improve
-            </h3>
-            <div style="              color:#475569;              line-height:1.7;            ">
-              ${improve || "Belum direkodkan."}
-            </div>
+
+            <button
+              onclick="document.getElementById('dashboardModal').remove()"
+              style="
+                width:42px;
+                height:42px;
+                border-radius:50%;
+                border:1px solid rgba(255,255,255,.3);
+                background:rgba(255,255,255,.12);
+                color:white;
+                font-size:25px;
+                cursor:pointer;
+              "
+            >×</button>
+
           </div>
 
-          <div style="    background:#ffffff;        border:1px solid #e2e8f0;            border-radius:16px;            padding:20px;
-          ">
-            <h3 style="margin-top:0;color:#17375F">
-              🤝 Share
-            </h3>
+          <!-- BODY -->
+          <div style="padding:22px;">
 
-            <div style="              color:#475569;              line-height:1.7;            ">
-              ${share || "Belum direkodkan."}
+            <!-- 3 KPI -->
+            <div style="
+              display:grid;
+              grid-template-columns:repeat(3,1fr);
+              gap:16px;
+              margin-bottom:18px;
+            ">
+
+              <!-- JUMLAH PLC -->
+              <div style="
+                background:white;
+                border:1px solid #dfe7f1;
+                border-radius:18px;
+                padding:20px;
+                box-shadow:0 5px 18px rgba(15,39,72,.06);
+                display:flex;
+                align-items:center;
+                gap:15px;
+              ">
+                <div style="
+                  width:54px;
+                  height:54px;
+                  border-radius:16px;
+                  background:#eaf3ff;
+                  display:grid;
+                  place-items:center;
+                  font-size:27px;
+                ">📋</div>
+
+                <div>
+                  <div style="
+                    color:#64748b;
+                    font-size:12px;
+                    font-weight:700;
+                  ">
+                    JUMLAH PLC
+                  </div>
+
+                  <div style="
+                    color:#102e57;
+                    font-size:30px;
+                    font-weight:800;
+                    margin-top:3px;
+                  ">
+                    ${jumlahPLC}
+                  </div>
+
+                  <div style="
+                    color:#94a3b8;
+                    font-size:11px;
+                  ">
+                    Rekod PLC dalam sistem
+                  </div>
+                </div>
+              </div>
+
+              <!-- GURU TERATAS -->
+              <div style="
+                background:white;
+                border:1px solid #dfe7f1;
+                border-radius:18px;
+                padding:20px;
+                box-shadow:0 5px 18px rgba(15,39,72,.06);
+                display:flex;
+                align-items:center;
+                gap:15px;
+              ">
+                <div style="
+                  width:54px;
+                  height:54px;
+                  border-radius:16px;
+                  background:#edf8f3;
+                  display:grid;
+                  place-items:center;
+                  font-size:27px;
+                ">👩‍🏫</div>
+
+                <div style="min-width:0;">
+                  <div style="
+                    color:#64748b;
+                    font-size:12px;
+                    font-weight:700;
+                  ">
+                    GURU PALING BANYAK ISI
+                  </div>
+
+                  <div style="
+                    color:#102e57;
+                    font-size:18px;
+                    font-weight:800;
+                    margin-top:5px;
+                    white-space:nowrap;
+                    overflow:hidden;
+                    text-overflow:ellipsis;
+                  ">
+                    ${escapeHTML(guruTeratas[0])}
+                  </div>
+
+                  <div style="
+                    color:#94a3b8;
+                    font-size:11px;
+                    margin-top:3px;
+                  ">
+                    ${guruTeratas[1]} PLC direkodkan
+                  </div>
+                </div>
+              </div>
+
+              <!-- TOP ALAT -->
+              <div style="
+                background:white;
+                border:1px solid #dfe7f1;
+                border-radius:18px;
+                padding:20px;
+                box-shadow:0 5px 18px rgba(15,39,72,.06);
+                display:flex;
+                align-items:center;
+                gap:15px;
+              ">
+                <div style="
+                  width:54px;
+                  height:54px;
+                  border-radius:16px;
+                  background:#fff5df;
+                  display:grid;
+                  place-items:center;
+                  font-size:27px;
+                ">🛠️</div>
+
+                <div>
+                  <div style="
+                    color:#64748b;
+                    font-size:12px;
+                    font-weight:700;
+                  ">
+                    ALAT KOLABORATIF
+                  </div>
+
+                  <div style="
+                    color:#102e57;
+                    font-size:30px;
+                    font-weight:800;
+                    margin-top:3px;
+                  ">
+                    ${toolRank.length}
+                  </div>
+
+                  <div style="
+                    color:#94a3b8;
+                    font-size:11px;
+                  ">
+                    Top 3 dipaparkan
+                  </div>
+                </div>
+              </div>
+
             </div>
-          </div>
 
+            <!-- ANALYTICS -->
+            <div style="
+              display:grid;
+              grid-template-columns:1fr 1fr;
+              gap:18px;
+            ">
+
+              <!-- GURU -->
+              <div style="
+                background:white;
+                border:1px solid #dfe7f1;
+                border-radius:18px;
+                padding:20px;
+                box-shadow:0 5px 18px rgba(15,39,72,.06);
+              ">
+
+                <div style="
+                  display:flex;
+                  justify-content:space-between;
+                  align-items:flex-start;
+                  margin-bottom:18px;
+                ">
+
+                  <div>
+                    <div style="
+                      color:#12345f;
+                      font-size:18px;
+                      font-weight:800;
+                    ">
+                      Guru Paling Banyak Isi PLC
+                    </div>
+
+                    <div style="
+                      color:#94a3b8;
+                      font-size:11px;
+                      margin-top:4px;
+                    ">
+                      Berdasarkan nama pengisi PLC
+                    </div>
+                  </div>
+
+                  <span style="
+                    background:#e9f8f3;
+                    color:#08795d;
+                    border-radius:20px;
+                    padding:5px 9px;
+                    font-size:9px;
+                    font-weight:800;
+                  ">
+                    DATA SEMASA
+                  </span>
+
+                </div>
+
+                ${
+                  guruRank.length
+                  ?
+                  guruRank.slice(0,8).map((item,index)=>`
+                    <div style="
+                      display:grid;
+                      grid-template-columns:28px 1fr 28px;
+                      align-items:center;
+                      gap:9px;
+                      margin-bottom:13px;
+                    ">
+
+                      <div style="
+                        width:26px;
+                        height:26px;
+                        border-radius:50%;
+                        background:#edf3fb;
+                        color:#234b7d;
+                        display:grid;
+                        place-items:center;
+                        font-size:11px;
+                        font-weight:800;
+                      ">
+                        ${index+1}
+                      </div>
+
+                      <div>
+                        <div style="
+                          color:#334155;
+                          font-size:12px;
+                          font-weight:700;
+                        ">
+                          ${escapeHTML(item[0])}
+                        </div>
+
+                        <div style="
+                          height:6px;
+                          background:#edf2f7;
+                          border-radius:10px;
+                          overflow:hidden;
+                          margin-top:6px;
+                        ">
+                          <div style="
+                            width:${Math.max(8,Math.round(item[1]/maxGuru*100))}%;
+                            height:100%;
+                            background:linear-gradient(90deg,#1e5aa8,#c59b3b);
+                            border-radius:10px;
+                          "></div>
+                        </div>
+                      </div>
+
+                      <b style="
+                        color:#12345f;
+                        font-size:12px;
+                        text-align:right;
+                      ">
+                        ${item[1]}
+                      </b>
+
+                    </div>
+                  `).join("")
+                  :
+                  `<div style="
+                    text-align:center;
+                    padding:25px;
+                    color:#94a3b8;
+                    font-size:12px;
+                  ">
+                    Belum ada rekod PLC.
+                  </div>`
+                }
+
+              </div>
+
+              <!-- ALAT KOLABORATIF -->
+              <div style="
+                background:white;
+                border:1px solid #dfe7f1;
+                border-radius:18px;
+                padding:20px;
+                box-shadow:0 5px 18px rgba(15,39,72,.06);
+              ">
+
+                <div style="
+                  display:flex;
+                  justify-content:space-between;
+                  align-items:flex-start;
+                  margin-bottom:24px;
+                ">
+
+                  <div>
+                    <div style="
+                      color:#12345f;
+                      font-size:18px;
+                      font-weight:800;
+                    ">
+                      Top 3 Alat Kolaboratif
+                    </div>
+
+                    <div style="
+                      color:#94a3b8;
+                      font-size:11px;
+                      margin-top:4px;
+                    ">
+                      Alat yang paling banyak digunakan
+                    </div>
+                  </div>
+
+                  <span style="
+                    background:#fff5d9;
+                    color:#9a6a00;
+                    border-radius:20px;
+                    padding:5px 9px;
+                    font-size:9px;
+                    font-weight:800;
+                  ">
+                    TOP 3
+                  </span>
+
+                </div>
+
+                ${
+                  toolRank.length
+                  ?
+                  toolRank.map((item,index)=>`
+                    <div style="margin-bottom:22px;">
+
+                      <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        margin-bottom:7px;
+                      ">
+
+                        <span style="
+                          color:#334155;
+                          font-size:13px;
+                          font-weight:700;
+                        ">
+                          ${index+1}. ${escapeHTML(item[0])}
+                        </span>
+
+                        <b style="
+                          color:#12345f;
+                          font-size:13px;
+                        ">
+                          ${item[1]}
+                        </b>
+
+                      </div>
+
+                      <div style="
+                        height:12px;
+                        background:#edf2f7;
+                        border-radius:10px;
+                        overflow:hidden;
+                      ">
+                        <div style="
+                          width:${Math.round(item[1]/maxTool*100)}%;
+                          height:100%;
+                          background:linear-gradient(90deg,#1e5aa8,#2d8cbb);
+                          border-radius:10px;
+                        "></div>
+                      </div>
+
+                    </div>
+                  `).join("")
+                  :
+                  `<div style="
+                    text-align:center;
+                    padding:25px;
+                    color:#94a3b8;
+                    font-size:12px;
+                  ">
+                    Belum ada alat kolaboratif direkodkan.
+                  </div>`
+                }
+
+              </div>
+
+            </div>
+
+            <!-- FOOTER -->
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              margin-top:18px;
+              color:#94a3b8;
+              font-size:11px;
+            ">
+
+              <span>
+                🔄 Data dipaparkan terus daripada Google Sheets
+              </span>
+
+              <button
+                onclick="showDashboard()"
+                style="
+                  border:1px solid #d7e1ed;
+                  background:white;
+                  color:#234b7d;
+                  border-radius:9px;
+                  padding:8px 12px;
+                  font-weight:700;
+                  cursor:pointer;
+                "
+              >
+                ↻ Refresh Dashboard
+              </button>
+
+            </div>
+
+          </div>
         </div>
-
-        <div style="          margin-top:25px;          padding:15px;          background:#f8fafc;          border-radius:12px;          font-size:12px;          color:#64748b;
-        ">
-          ℹ️ Dashboard ini memaparkan data PLC yang sedang tersedia
-          dalam sesi sistem ini.
-        </div>
-
       </div>
-    </div>
-  `;
+    `;
 
-  document.body.appendChild(modal);
-}
+    document.body.appendChild(modal);
+
+  }catch(error){
+
+    alert("Dashboard gagal mengambil data. Sila semak sambungan Google Sheets.");
+
+    console.error("Dashboard Error:",error);
+  }
  const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxzPzoEY10qiAb6-rtysT6V7Kf2EYhspsMSxE5FJDwtwWFF4w2LV6sgK3qH9WVp-cRKgQ/exec";
 function sendToGoogleSheets(){  const data = getData();  fetch(GOOGLE_SHEETS_URL, {    method: "POST",    body: JSON.stringify(data)  })  .then(() => {    alert("✅ Data berjaya dihantar ke Google Sheets.");  })
   .catch(error => {    alert("❌ Gagal menghantar data: " + error);  });}
