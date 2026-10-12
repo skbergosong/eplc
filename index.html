@@ -134,9 +134,14 @@ th,td{padding:9px}
 </div><div class="help">Pilihan bidang akan mengunci/menentukan alat kolaboratif yang berkaitan.</div></div>
 <div><label>Alat Kolaboratif <span class="req">*</span></label><select id="tool"></select></div>
 <div><label>Tempat</label><input id="place"></div>
-<div><label>Tarikh Tamat <span class="req">*</span></label><input id="finish" type="date"></div>
-</div></div></div>
-
+<div>
+  <label>Tarikh Mula PLC <span class="req">*</span></label>
+  <input id="start" type="date" required>
+</div>
+<div>
+  <label>Tarikh Tamat PLC <span class="req">*</span></label>
+  <input id="finish" type="date" required>
+</div>
 <div class="panel"><div class="ph">Pengurusan <span class="req">*</span> <span class="limit">(min 1, maks 3)</span></div><div class="pb">
 <select id="management" multiple size="10">
 <option>A001 - ICT/Digital</option><option>A002 - Bimbingan Kaunseling</option><option>A003 - Kokurikulum/Sukan/Permainan</option><option>A004 - HEM</option><option>A005 - STEM</option><option>A006 - IR4.0</option><option>A007 - Inovasi</option><option>A008 - Program Madani</option><option>A009 - Pengurusan Organisasi</option><option>A010 - Kesihatan (Pemakanan/Nutrisi)</option><option>A011 - PdP/PdPc/PdPr</option><option>A012 - Alam Sekitar</option><option>A013 - Benchmarking</option><option>A014 - Pemeriksaan</option>
@@ -557,6 +562,7 @@ function getData(){
     field: document.querySelector('input[name=field]:checked')?.value || "",
     tool: $("tool").value,
     place: $("place").value,
+    start: $("start").value,
     finish: $("finish").value,
     management: [...$("management").selectedOptions].map(x => x.value),
     subjects: [...$("subjects").selectedOptions].map(x => x.value),
